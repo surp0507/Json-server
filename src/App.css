@@ -1,0 +1,22 @@
+
+    .btn{
+   
+           margin: 17px 7px;
+           border: none;
+        }
+
+        .lini-item{
+       
+          text-decoration: none;
+        }
+
+
+    .container{
+                margin: 225px auto;
+                width: 425px;
+              }
+
+    h2{
+        margin: 2px 150px;
+        color: red;
+      }
