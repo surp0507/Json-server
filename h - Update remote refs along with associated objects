@@ -1,0 +1,260 @@
+GIT-PUSH(1)                       Git Manual                       GIT-PUSH(1)
+
+NNAAMMEE
+       git-push - Update remote refs along with associated objects
+
+SSYYNNOOPPSSIISS
+       _g_i_t _p_u_s_h [--all | --mirror | --tags] [--follow-tags] [--atomic] [-n | --dry-run] [--receive-pack=<git-receive-pack>]
+                  [--repo=<repository>] [-f | --force] [-d | --delete] [--prune] [-v | --verbose]
+                  [-u | --set-upstream] [-o <string> | --push-option=<string>]
+                  [--[no-]signed|--signed=(true|false|if-asked)]
+                  [--force-with-lease[=<refname>[:<expect>]]]
+                  [--no-verify] [<repository> [<refspec>...]]
+
+DDEESSCCRRIIPPTTIIOONN
+       Updates remote refs using local refs, while sending objects necessary
+       to complete the given refs.
+
+       You can make interesting things happen to a repository every time you
+       push into it, by setting up _h_o_o_k_s there. See documentation for ggiitt--
+       rreecceeiivvee--ppaacckk(1).
+
+       When the command line does not specify where to push with the
+       <<rreeppoossiittoorryy>> argument, bbrraanncchh..**..rreemmoottee configuration for the current
+       branch is consulted to determine where to push. If the configuration is
+       missing, it defaults to _o_r_i_g_i_n.
+
+       When the command line does not specify what to push with <<rreeffssppeecc>>......
+       arguments or ----aallll, ----mmiirrrroorr, ----ttaaggss options, the command finds the
+       default <<rreeffssppeecc>> by consulting rreemmoottee..**..ppuusshh configuration, and if it
+       is not found, honors ppuusshh..ddeeffaauulltt configuration to decide what to push
+       (See ggiitt--ccoonnffiigg(1) for the meaning of ppuusshh..ddeeffaauulltt).
+
+       When neither the command-line nor the configuration specify what to
+       push, the default behavior is used, which corresponds to the ssiimmppllee
+       value for ppuusshh..ddeeffaauulltt: the current branch is pushed to the
+       corresponding upstream branch, but as a safety measure, the push is
+       aborted if the upstream branch does not have the same name as the local
+       one.
+
+OOPPTTIIOONNSS
+       <repository>
+           The "remote" repository that is destination of a push operation.
+           This parameter can be either a URL (see the section GIT URLS below)
+           or the name of a remote (see the section REMOTES below).
+
+       <refspec>...
+           Specify what destination ref to update with what source object. The
+           format of a <refspec> parameter is an optional plus ++, followed by
+           the source object <src>, followed by a colon ::, followed by the
+           destination ref <dst>.
+
+           The <src> is often the name of the branch you would want to push,
+           but it can be any arbitrary "SHA-1 expression", such as mmaasstteerr~~44 or
+           HHEEAADD (see ggiittrreevviissiioonnss(7)).
+
+           The <dst> tells which ref on the remote side is updated with this
+           push. Arbitrary expressions cannot be used here, an actual ref must
+           be named. If ggiitt ppuusshh [[<<rreeppoossiittoorryy>>]] without any <<rreeffssppeecc>> argument
+           is set to update some ref at the destination with <<ssrrcc>> with
+           rreemmoottee..<<rreeppoossiittoorryy>>..ppuusshh configuration variable, ::<<ddsstt>> part can be
+           omitted—such a push will update a ref that <<ssrrcc>> normally updates
+           without any <<rreeffssppeecc>> on the command line. Otherwise, missing
+           ::<<ddsstt>> means to update the same ref as the <<ssrrcc>>.
+
+           If <dst> doesn’t start with rreeffss// (e.g.  rreeffss//hheeaaddss//mmaasstteerr) we will
+           try to infer where in rreeffss//** on the destination <repository> it
+           belongs based on the type of <src> being pushed and whether <dst>
+           is ambiguous.
+
+           •   If <dst> unambiguously refers to a ref on the <repository>
+               remote, then push to that ref.
+
+           •   If <src> resolves to a ref starting with refs/heads/ or
+               refs/tags/, then prepend that to <dst>.
+
+           •   Other ambiguity resolutions might be added in the future, but
+               for now any other cases will error out with an error indicating
+               what we tried, and depending on the
+               aaddvviiccee..ppuusshhUUnnqquuaalliiffiieeddRReeffnnaammee configuration (see ggiitt--ccoonnffiigg(1))
+               suggest what refs/ namespace you may have wanted to push to.
+
+           The object referenced by <src> is used to update the <dst>
+           reference on the remote side. Whether this is allowed depends on
+           where in rreeffss//** the <dst> reference lives as described in detail
+           below, in those sections "update" means any modifications except
+           deletes, which as noted after the next few sections are treated
+           differently.
+
+           The rreeffss//hheeaaddss//** namespace will only accept commit objects, and
+           updates only if they can be fast-forwarded.
+
+           The rreeffss//ttaaggss//** namespace will accept any kind of object (as
+           commits, trees and blobs can be tagged), and any updates to them
+           will be rejected.
+
+           It’s possible to push any type of object to any namespace outside
+           of rreeffss//{{ttaaggss,,hheeaaddss}}//**. In the case of tags and commits, these will
+           be treated as if they were the commits inside rreeffss//hheeaaddss//** for the
+           purposes of whether the update is allowed.
+
+           I.e. a fast-forward of commits and tags outside rreeffss//{{ttaaggss,,hheeaaddss}}//**
+           is allowed, even in cases where what’s being fast-forwarded is not
+           a commit, but a tag object which happens to point to a new commit
+           which is a fast-forward of the commit the last tag (or commit) it’s
+           replacing. Replacing a tag with an entirely different tag is also
+           allowed, if it points to the same commit, as well as pushing a
+           peeled tag, i.e. pushing the commit that existing tag object points
+           to, or a new tag object which an existing commit points to.
+
+           Tree and blob objects outside of rreeffss//{{ttaaggss,,hheeaaddss}}//** will be
+           treated the same way as if they were inside rreeffss//ttaaggss//**, any update
+           of them will be rejected.
+
+           All of the rules described above about what’s not allowed as an
+           update can be overridden by adding an the optional leading ++ to a
+           refspec (or using ----ffoorrccee command line option). The only exception
+           to this is that no amount of forcing will make the rreeffss//hheeaaddss//**
+           namespace accept a non-commit object. Hooks and configuration can
+           also override or amend these rules, see e.g.
+           rreecceeiivvee..ddeennyyNNoonnFFaassttFFoorrwwaarrddss in ggiitt--ccoonnffiigg(1) and pprree--rreecceeiivvee and
+           uuppddaattee in ggiitthhooookkss(5).
+
+           Pushing an empty <src> allows you to delete the <dst> ref from the
+           remote repository. Deletions are always accepted without a leading
+           ++ in the refspec (or ----ffoorrccee), except when forbidden by
+           configuration or hooks. See rreecceeiivvee..ddeennyyDDeelleetteess in ggiitt--ccoonnffiigg(1)
+           and pprree--rreecceeiivvee and uuppddaattee in ggiitthhooookkss(5).
+
+           The special refspec :: (or ++:: to allow non-fast-forward updates)
+           directs Git to push "matching" branches: for every branch that
+           exists on the local side, the remote side is updated if a branch of
+           the same name already exists on the remote side.
+
+           ttaagg <<ttaagg>> means the same as rreeffss//ttaaggss//<<ttaagg>>::rreeffss//ttaaggss//<<ttaagg>>.
+
+       --all
+           Push all branches (i.e. refs under rreeffss//hheeaaddss//); cannot be used
+           with other <refspec>.
+
+       --prune
+           Remove remote branches that don’t have a local counterpart. For
+           example a remote branch ttmmpp will be removed if a local branch with
+           the same name doesn’t exist any more. This also respects refspecs,
+           e.g.  ggiitt ppuusshh ----pprruunnee rreemmoottee rreeffss//hheeaaddss//**::rreeffss//ttmmpp//** would make
+           sure that remote rreeffss//ttmmpp//ffoooo will be removed if rreeffss//hheeaaddss//ffoooo
+           doesn’t exist.
+
+       --mirror
+           Instead of naming each ref to push, specifies that all refs under
+           rreeffss// (which includes but is not limited to rreeffss//hheeaaddss//,
+           rreeffss//rreemmootteess//, and rreeffss//ttaaggss//) be mirrored to the remote
+           repository. Newly created local refs will be pushed to the remote
+           end, locally updated refs will be force updated on the remote end,
+           and deleted refs will be removed from the remote end. This is the
+           default if the configuration option rreemmoottee..<<rreemmoottee>>..mmiirrrroorr is set.
+
+       -n, --dry-run
+           Do everything except actually send the updates.
+
+       --porcelain
+           Produce machine-readable output. The output status line for each
+           ref will be tab-separated and sent to stdout instead of stderr. The
+           full symbolic names of the refs will be given.
+
+       -d, --delete
+           All listed refs are deleted from the remote repository. This is the
+           same as prefixing all refs with a colon.
+
+       --tags
+           All refs under rreeffss//ttaaggss are pushed, in addition to refspecs
+           explicitly listed on the command line.
+
+       --follow-tags
+           Push all the refs that would be pushed without this option, and
+           also push annotated tags in rreeffss//ttaaggss that are missing from the
+           remote but are pointing at commit-ish that are reachable from the
+           refs being pushed. This can also be specified with configuration
+           variable ppuusshh..ffoolllloowwTTaaggss. For more information, see ppuusshh..ffoolllloowwTTaaggss
+           in ggiitt--ccoonnffiigg(1).
+
+       --[no-]signed, --signed=(true|false|if-asked)
+           GPG-sign the push request to update refs on the receiving side, to
+           allow it to be checked by the hooks and/or be logged. If ffaallssee or
+           ----nnoo--ssiiggnneedd, no signing will be attempted. If ttrruuee or ----ssiiggnneedd, the
+           push will fail if the server does not support signed pushes. If set
+           to iiff--aasskkeedd, sign if and only if the server supports signed pushes.
+           The push will also fail if the actual call to ggppgg ----ssiiggnn fails. See
+           ggiitt--rreecceeiivvee--ppaacckk(1) for the details on the receiving end.
+
+       --[no-]atomic
+           Use an atomic transaction on the remote side if available. Either
+           all refs are updated, or on error, no refs are updated. If the
+           server does not support atomic pushes the push will fail.
+
+       -o <option>, --push-option=<option>
+           Transmit the given string to the server, which passes them to the
+           pre-receive as well as the post-receive hook. The given string must
+           not contain a NUL or LF character. When multiple
+           ----ppuusshh--ooppttiioonn==<<ooppttiioonn>> are given, they are all sent to the other
+           side in the order listed on the command line. When no
+           ----ppuusshh--ooppttiioonn==<<ooppttiioonn>> is given from the command line, the values
+           of configuration variable ppuusshh..ppuusshhOOppttiioonn are used instead.
+
+       --receive-pack=<git-receive-pack>, --exec=<git-receive-pack>
+           Path to the _g_i_t_-_r_e_c_e_i_v_e_-_p_a_c_k program on the remote end. Sometimes
+           useful when pushing to a remote repository over ssh, and you do not
+           have the program in a directory on the default $PATH.
+
+       --[no-]force-with-lease, --force-with-lease=<refname>,
+       --force-with-lease=<refname>:<expect>
+           Usually, "git push" refuses to update a remote ref that is not an
+           ancestor of the local ref used to overwrite it.
+
+           This option overrides this restriction if the current value of the
+           remote ref is the expected value. "git push" fails otherwise.
+
+           Imagine that you have to rebase what you have already published.
+           You will have to bypass the "must fast-forward" rule in order to
+           replace the history you originally published with the rebased
+           history. If somebody else built on top of your original history
+           while you are rebasing, the tip of the branch at the remote may
+           advance with her commit, and blindly pushing with ----ffoorrccee will lose
+           her work.
+
+           This option allows you to say that you expect the history you are
+           updating is what you rebased and want to replace. If the remote ref
+           still points at the commit you specified, you can be sure that no
+           other people did anything to the ref. It is like taking a "lease"
+           on the ref without explicitly locking it, and the remote ref is
+           updated only if the "lease" is still valid.
+
+           ----ffoorrccee--wwiitthh--lleeaassee alone, without specifying the details, will
+           protect all remote refs that are going to be updated by requiring
+           their current value to be the same as the remote-tracking branch we
+           have for them.
+
+           ----ffoorrccee--wwiitthh--lleeaassee==<<rreeffnnaammee>>, without specifying the expected
+           value, will protect the named ref (alone), if it is going to be
+           updated, by requiring its current value to be the same as the
+           remote-tracking branch we have for it.
+
+           ----ffoorrccee--wwiitthh--lleeaassee==<<rreeffnnaammee>>::<<eexxppeecctt>> will protect the named ref
+           (alone), if it is going to be updated, by requiring its current
+           value to be the same as the specified value <<eexxppeecctt>> (which is
+           allowed to be different from the remote-tracking branch we have for
+           the refname, or we do not even have to have such a remote-tracking
+           branch when this form is used). If <<eexxppeecctt>> is the empty string,
+           then the named ref must not already exist.
+
+           Note that all forms other than
+           ----ffoorrccee--wwiitthh--lleeaassee==<<rreeffnnaammee>>::<<eexxppeecctt>> that specifies the expected
+           current value of the ref explicitly are still experimental and
+           their semantics may change as we gain experience with this feature.
+
+           "--no-force-with-lease" will cancel all the previous
+           --force-with-lease on the command line.
+
+           A general note on safety: supplying this option without an expected
+           value, i.e. as ----ffoorrccee--wwiitthh--lleeaassee or ----ffoorrccee--wwiitthh--lleeaassee==<<rreeffnnaammee>>
+           interacts ve
