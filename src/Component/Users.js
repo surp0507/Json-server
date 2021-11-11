@@ -49,6 +49,7 @@ import { Link } from 'react-router-dom';
     console.log(data);
     const res= await axios.post(' http://localhost:3004/users',{...data});
     console.log(res.data);
+    alert("changes saved");
   }
 
   selectUser = (Id) => {
@@ -61,7 +62,7 @@ import { Link } from 'react-router-dom';
     this.setState({userId:item.id})
   }
 
-  UpdateUser = async (e) => {
+  UpdateUser = async () => {
     const {name,email,phone,userId}=this.state
     let item={name,email,phone}
     const response = await axios.put(`http://localhost:3004/users/${userId}`, {...item}); 
@@ -115,22 +116,22 @@ import { Link } from 'react-router-dom';
                      <Modal.Title>Add User</Modal.Title>
                    </Modal.Header>
                    <Modal.Body>
-                     <input 
+                     <input  
+                       autoComplete="none"
                        type="text" 
-                       value={name} 
                        onChange={(e)=>this.setState({name:e.target.value})}
                        name="name" placeholder="name"
                      /> <br/> <br />
                      <input 
+                       autoComplete="none"
                        type="text" 
-                       value={email}
                        onChange={(e)=>this.setState({email:e.target.value})} 
                        name="email" placeholder="email" 
                      /> <br/> <br />
                      <input 
+                       autoComplete="none"
                        type="text" 
-                       value={phone}
-                       onChange={(e)=>this.setState({phone:e.target.value})} 
+                      onChange={(e)=>this.setState({phone:e.target.value})} 
                        name="phone"  placeholder="phone"
                      /> <br/><br />
                    </Modal.Body>
