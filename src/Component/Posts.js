@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import axios from 'axios';
+import {Button} from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
   export class Posts extends Component {
     state = {
@@ -33,6 +35,7 @@ import axios from 'axios';
                 <td>{posts.userId}</td>
                 <td> {posts.id}</td>
                 <td>{posts.title}</td>
+                <td><Link to={`/comment/${posts.id}`}><Button>comments</Button></Link></td>
               </tr>
              ))}
           </table>

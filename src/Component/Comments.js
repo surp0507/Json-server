@@ -7,7 +7,9 @@ export default class Comments extends Component {
   }
 
   requestData = async () => {
-    const response= await axios.get('http://localhost:3004/comments');
+    const {com_id}=this.props.match.params
+    console.log(com_id)
+    const response= await axios.get(`http://localhost:3004/posts/${com_id}/comments`);
     this.setState({comment:response.data})
   }
   

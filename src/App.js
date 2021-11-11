@@ -14,7 +14,7 @@ import {BrowserRouter,Route} from 'react-router-dom'
             <Route exact path="/" component={Users}/>
             <Route path="/todo/:user_id" component={Todo}/>
             <Route path="/post/:post_id" component={Posts}/>
-            <Route path="/comment"component={Comments}/>
+            <Route path="/comment/:com_id"component={Comments}/>
          </BrowserRouter>
        </div>
      );

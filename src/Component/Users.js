@@ -133,7 +133,7 @@ import { Link } from 'react-router-dom';
                        onChange={(e)=>this.setState({phone:e.target.value})} 
                        name="phone"  placeholder="phone"
                      /> <br/><br />
-                     </Modal.Body>
+                   </Modal.Body>
                        <Modal.Footer>
                          <Button variant="secondary" onClick={this.handleClose}>
                            Close
@@ -168,4 +168,4 @@ import { Link } from 'react-router-dom';
             }
        } 
 
-export default Users
+export default Users;
